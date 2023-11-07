@@ -1,5 +1,7 @@
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 
+import { useRef } from 'react';
 import { useState } from 'react';
 
 /* eslint-disable react/jsx-key */
@@ -24,14 +26,32 @@ const initialFriends = [
   },
 ];
 
+function Button({ children, onClick }) {
+  return (
+    <button
+      onClick={() => onClick((prevState) => !prevState)}
+      className='button'
+    >
+      {children}
+    </button>
+  );
+}
+
 export default function App() {
+  const [friends, setFriends] = useState(initialFriends);
   const [isAddFormOpen, setAddFormOpen] = useState(false);
+
+  function handleAddFriend(friend) {
+    setFriends((prevState) => [...prevState, friend]);
+    setAddFormOpen(false);
+  }
+
   return (
     <div className='app'>
       <div className='sidebar'>
-        <FriendsList />
-        {isAddFormOpen && <FormAddFriend />}
-        <Button setAddFormOpen={setAddFormOpen} isAddFormOpen={isAddFormOpen}>
+        <FriendsList friendList={friends} />
+        {isAddFormOpen && <FormAddFriend onAddFriend={handleAddFriend} />}
+        <Button onClick={setAddFormOpen}>
           {isAddFormOpen ? 'Close' : 'Add Friend'}
         </Button>
       </div>
@@ -40,11 +60,10 @@ export default function App() {
   );
 }
 
-function FriendsList() {
-  const friends = initialFriends;
+function FriendsList({ friendList }) {
   return (
     <ul>
-      {friends.map((f) => (
+      {friendList.map((f) => (
         <Friend friend={f} key={f.id} />
       ))}
     </ul>
@@ -72,21 +91,39 @@ function Friend({ friend }) {
   );
 }
 
-function Button({ children, setAddFormOpen, isAddFormOpen }) {
-  return (
-    <button onClick={() => setAddFormOpen(!isAddFormOpen)} className='button'>
-      {children}
-    </button>
-  );
-}
+function FormAddFriend({ onAddFriend }) {
+  const frndName = useRef();
+  const imageURL = useRef();
 
-function FormAddFriend() {
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    if (frndName.current.value !== '' && imageURL.current.value !== '') {
+      const id = crypto.randomUUID(); // generates random id in web browser
+      const newFriend = {
+        id: id,
+        name: frndName.current.value,
+        image: `${imageURL.current.value}?=${id}`,
+        balance: 0,
+      };
+      onAddFriend(newFriend);
+      frndName.current.value = '';
+      // console.log(newFriend);
+    }
+    return;
+  }
+
   return (
-    <form className='form-add-friend'>
+    <form className='form-add-friend' onSubmit={(e) => handleSubmit(e)}>
       <label>🧑‍🤝‍🧑Friend Name</label>
-      <input type='text' />
+      <input ref={frndName} type='text' />
       <label>📷Image URL</label>
-      <input type='text' />
+      <input
+        ref={imageURL}
+        type='text'
+        readOnly
+        value='https://i.pravatar.cc/48'
+      />
       <Button>Add</Button>
     </form>
   );
