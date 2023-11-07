@@ -1,4 +1,7 @@
 /* eslint-disable react/prop-types */
+
+import { useState } from 'react';
+
 /* eslint-disable react/jsx-key */
 const initialFriends = [
   {
@@ -22,12 +25,15 @@ const initialFriends = [
 ];
 
 export default function App() {
+  const [isAddFormOpen, setAddFormOpen] = useState(false);
   return (
     <div className='app'>
       <div className='sidebar'>
         <FriendsList />
-        <FormAddFriend />
-        <Button>Add Friend</Button>
+        {isAddFormOpen && <FormAddFriend />}
+        <Button setAddFormOpen={setAddFormOpen} isAddFormOpen={isAddFormOpen}>
+          {isAddFormOpen ? 'Close' : 'Add Friend'}
+        </Button>
       </div>
       <FormSplitBill />
     </div>
@@ -66,8 +72,12 @@ function Friend({ friend }) {
   );
 }
 
-function Button({ children }) {
-  return <button className='button'>{children}</button>;
+function Button({ children, setAddFormOpen, isAddFormOpen }) {
+  return (
+    <button onClick={() => setAddFormOpen(!isAddFormOpen)} className='button'>
+      {children}
+    </button>
+  );
 }
 
 function FormAddFriend() {
